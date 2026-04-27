@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drishti — Vedic Astrology</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #0e0b1a;
+      color: #e8dfc8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      text-align: center;
+      padding: 2rem 1rem 1rem;
+      background: linear-gradient(180deg, #1a1030 0%, #0e0b1a 100%);
+      border-bottom: 1px solid #3a2a5a;
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      letter-spacing: 0.15em;
+      color: #c9a84c;
+      text-shadow: 0 0 20px rgba(201,168,76,0.4);
+    }
+
+    header p {
+      color: #9a8ab0;
+      font-style: italic;
+      margin-top: 0.3rem;
+      font-size: 0.95rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+      padding: 1.5rem 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    /* ── Model selector ── */
+    #model-section {
+      background: #1a1430;
+      border: 1px solid #3a2a5a;
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+    }
+
+    #model-section h2 {
+      font-size: 1rem;
+      color: #c9a84c;
+      margin-bottom: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .model-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .model-card {
+      background: #0e0b1a;
+      border: 2px solid #3a2a5a;
+      border-radius: 10px;
+      padding: 0.9rem 1rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+
+    .model-card:hover { border-color: #6a4a9a; background: #150f28; }
+
+    .model-card.selected {
+      border-color: #c9a84c;
+      background: #1e1630;
+    }
+
+    .model-card.unavailable {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .model-card-name {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: #e8dfc8;
+      margin-bottom: 0.3rem;
+    }
+
+    .model-card.selected .model-card-name { color: #c9a84c; }
+
+    .model-card-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.5rem;
+      border-radius: 20px;
+      margin-bottom: 0.5rem;
+    }
+
+    .badge-free    { background: #1a3a1a; color: #6ec96e; border: 1px solid #3a6a3a; }
+    .badge-paid    { background: #3a2010; color: #c9a84c; border: 1px solid #6a4a20; }
+    .badge-local   { background: #101a3a; color: #6eaee8; border: 1px solid #2a4a7a; }
+    .badge-no-key  { background: #2a1a1a; color: #e07070; border: 1px solid #5a2a2a; }
+
+    .model-card-desc {
+      font-size: 0.78rem;
+      color: #7a6a90;
+      line-height: 1.5;
+    }
+
+    .model-card-check {
+      position: absolute;
+      top: 0.6rem;
+      right: 0.7rem;
+      font-size: 0.85rem;
+      color: #c9a84c;
+      display: none;
+    }
+
+    .model-card.selected .model-card-check { display: block; }
+
+    /* ── Birth data form ── */
+    #birth-form-section {
+      background: #1a1430;
+      border: 1px solid #3a2a5a;
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+    }
+
+    #birth-form-section h2 {
+      font-size: 1rem;
+      color: #c9a84c;
+      margin-bottom: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .form-group label {
+      font-size: 0.78rem;
+      color: #9a8ab0;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .form-group input {
+      background: #0e0b1a;
+      border: 1px solid #3a2a5a;
+      border-radius: 6px;
+      padding: 0.5rem 0.7rem;
+      color: #e8dfc8;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus { border-color: #c9a84c; }
+
+    #city-group { flex: 2; min-width: 200px; }
+
+    #calculate-btn {
+      margin-top: 1rem;
+      background: #c9a84c;
+      color: #0e0b1a;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1.6rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
+    #calculate-btn:hover { background: #e0be6a; }
+    #calculate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #form-error {
+      color: #e07070;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── Chart summary ── */
+    #chart-section {
+      display: none;
+      background: #1a1430;
+      border: 1px solid #3a2a5a;
+      border-radius: 12px;
+      padding: 1.2rem 1.6rem;
+    }
+
+    #chart-section h2 {
+      font-size: 0.85rem;
+      color: #c9a84c;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.8rem;
+    }
+
+    #chart-summary-text {
+      font-size: 0.82rem;
+      color: #9a8ab0;
+      line-height: 1.7;
+      white-space: pre-line;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* ── Chat ── */
+    #chat-section {
+      display: none;
+      flex-direction: column;
+      gap: 0.8rem;
+      flex: 1;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    #chat-section h2 {
+      font-size: 0.85rem;
+      color: #c9a84c;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    #active-model-badge {
+      font-size: 0.75rem;
+      color: #9a8ab0;
+      background: #1a1430;
+      border: 1px solid #3a2a5a;
+      border-radius: 20px;
+      padding: 0.2rem 0.7rem;
+    }
+
+    #messages {
+      background: #1a1430;
+      border: 1px solid #3a2a5a;
+      border-radius: 12px;
+      padding: 1.2rem;
+      min-height: 300px;
+      max-height: 480px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .msg {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      max-width: 88%;
+    }
+
+    .msg.user    { align-self: flex-end;   align-items: flex-end; }
+    .msg.assistant { align-self: flex-start; align-items: flex-start; }
+
+    .msg-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #6a5a80;
+    }
+
+    .msg.user .msg-label { color: #c9a84c88; }
+
+    .msg-bubble {
+      background: #261e40;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-size: 0.93rem;
+      line-height: 1.65;
+      color: #e8dfc8;
+      border: 1px solid #3a2a5a;
+    }
+
+    .msg.user .msg-bubble {
+      background: #2e2010;
+      border-color: #c9a84c44;
+      color: #f0e8d0;
+    }
+
+    .msg-bubble p { margin-bottom: 0.6rem; }
+    .msg-bubble p:last-child { margin-bottom: 0; }
+
+    #chat-input-row {
+      display: flex;
+      gap: 0.6rem;
+    }
+
+    #chat-input {
+      flex: 1;
+      background: #1a1430;
+      border: 1px solid #3a2a5a;
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      color: #e8dfc8;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+
+    #chat-input:focus { border-color: #c9a84c; }
+
+    #send-btn {
+      background: #c9a84c;
+      color: #0e0b1a;
+      border: none;
+      border-radius: 8px;
+      padding: 0 1.2rem;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+    }
+
+    #send-btn:hover { background: #e0be6a; }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 0.5rem 0.2rem;
+      align-items: center;
+    }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #9a8ab0;
+      animation: bounce 1.2s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    .suggestion-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .chip {
+      background: #261e40;
+      border: 1px solid #3a2a5a;
+      border-radius: 20px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      color: #c9a84c;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+
+    .chip:hover { background: #3a2a5a; }
+
+    /* ── Settings panel ── */
+    #settings-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: #1a1430;
+      border: 1px solid #3a2a5a;
+      border-radius: 8px;
+      padding: 0.4rem 0.9rem;
+      color: #9a8ab0;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      z-index: 100;
+    }
+
+    #settings-toggle:hover { border-color: #c9a84c; color: #c9a84c; }
+
+    #settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #settings-overlay.open { display: flex; }
+
+    #settings-panel {
+      background: #1a1430;
+      border: 1px solid #3a2a5a;
+      border-radius: 14px;
+      padding: 1.8rem 2rem;
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      position: relative;
+    }
+
+    #settings-panel h2 {
+      font-size: 1rem;
+      color: #c9a84c;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .settings-note {
+      font-size: 0.82rem;
+      color: #7a6a90;
+      line-height: 1.55;
+      background: #0e0b1a;
+      border: 1px solid #2a1a4a;
+      border-radius: 8px;
+      padding: 0.7rem 0.9rem;
+    }
+
+    .key-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .key-group label {
+      font-size: 0.78rem;
+      color: #9a8ab0;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .key-group label span {
+      font-size: 0.68rem;
+      color: #6a5a80;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .key-input-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .key-input-row input {
+      flex: 1;
+      background: #0e0b1a;
+      border: 1px solid #3a2a5a;
+      border-radius: 6px;
+      padding: 0.5rem 0.7rem;
+      color: #e8dfc8;
+      font-size: 0.88rem;
+      font-family: 'Courier New', monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .key-input-row input:focus { border-color: #c9a84c; }
+
+    .key-saved {
+      font-size: 0.72rem;
+      color: #6ec96e;
+      margin-top: 0.2rem;
+      display: none;
+    }
+
+    #settings-save-btn {
+      background: #c9a84c;
+      color: #0e0b1a;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #settings-save-btn:hover { background: #e0be6a; }
+
+    #settings-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: #6a5a80;
+      font-size: 1.3rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    #settings-close:hover { color: #e8dfc8; }
+  </style>
+</head>
+<body>
+
+<!-- Settings toggle button -->
+<button id="settings-toggle" onclick="openSettings()">&#9881; Settings</button>
+
+<!-- Settings overlay -->
+<div id="settings-overlay">
+  <div id="settings-panel">
+    <button id="settings-close" onclick="closeSettings()">&#10005;</button>
+    <h2>API Keys</h2>
+    <div class="settings-note">
+      Your keys are saved only in your browser (localStorage) and sent directly to the AI provider. They are never stored on the server.
+    </div>
+
+    <div class="key-group">
+      <label>Claude (Anthropic) <span>— console.anthropic.com</span></label>
+      <div class="key-input-row">
+        <input type="password" id="key-claude" placeholder="sk-ant-..." autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="key-group">
+      <label>Groq <span>— console.groq.com → API Keys</span></label>
+      <div class="key-input-row">
+        <input type="password" id="key-groq" placeholder="gsk_..." autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="key-group">
+      <label>Gemini (Google) <span>— aistudio.google.com → Get API Key</span></label>
+      <div class="key-input-row">
+        <input type="password" id="key-gemini" placeholder="AI..." autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="key-group">
+      <label>Ollama <span>— no key needed, runs locally</span></label>
+      <div class="key-input-row">
+        <input type="text" value="No key required" disabled style="opacity:0.4;" />
+      </div>
+    </div>
+
+    <button id="settings-save-btn" onclick="saveKeys()">Save Keys</button>
+    <div class="key-saved" id="keys-saved-msg">&#10003; Keys saved to your browser</div>
+  </div>
+</div>
+
+<header>
+  <h1>&#9728; Drishti</h1>
+  <p>Vedic Astrology — See clearly through the light of the stars</p>
+</header>
+
+<div class="container">
+
+  <!-- Model selector -->
+  <section id="model-section">
+    <h2>Choose Your AI Guide</h2>
+    <div class="model-cards">
+
+      <div class="model-card selected" id="card-claude" onclick="selectModel('claude')">
+        <span class="model-card-check">&#10003;</span>
+        <div class="model-card-name">Claude</div>
+        <span class="model-card-badge badge-paid">Paid</span>
+        <div class="model-card-desc">
+          Anthropic's Claude. Best reasoning and nuance — ideal for deep chart readings. Requires an API key.
+        </div>
+      </div>
+
+      <div class="model-card" id="card-groq" onclick="selectModel('groq')">
+        <span class="model-card-check">&#10003;</span>
+        <div class="model-card-name">Groq</div>
+        <span class="model-card-badge badge-free" id="badge-groq">Free tier</span>
+        <div class="model-card-desc">
+          Runs Llama 3 (70B) at lightning speed. Generous free tier — great balance of quality and cost.
+        </div>
+      </div>
+
+      <div class="model-card" id="card-gemini" onclick="selectModel('gemini')">
+        <span class="model-card-check">&#10003;</span>
+        <div class="model-card-name">Gemini</div>
+        <span class="model-card-badge badge-free" id="badge-gemini">Free tier</span>
+        <div class="model-card-desc">
+          Google's Gemini Flash. 1,500 free requests/day. Strong reasoning, excellent for longer answers.
+        </div>
+      </div>
+
+      <div class="model-card" id="card-ollama" onclick="selectModel('ollama')">
+        <span class="model-card-check">&#10003;</span>
+        <div class="model-card-name">Ollama</div>
+        <span class="model-card-badge badge-local">Local &amp; Free</span>
+        <div class="model-card-desc">
+          Runs fully on your Mac. 100% private, no API key, works offline. Needs Ollama installed locally.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Birth data form -->
+  <section id="birth-form-section">
+    <h2>Your Birth Details</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date of Birth</label>
+        <input type="date" id="birth-date" />
+      </div>
+      <div class="form-group">
+        <label>Time of Birth</label>
+        <input type="time" id="birth-time" />
+      </div>
+      <div class="form-group" id="city-group">
+        <label>Birth City</label>
+        <input type="text" id="birth-city" placeholder="e.g. Mumbai, India" />
+      </div>
+    </div>
+    <button id="calculate-btn" onclick="calculateChart()">Calculate My Chart</button>
+    <div id="form-error"></div>
+  </section>
+
+  <!-- Chart summary -->
+  <section id="chart-section">
+    <h2>Your Jyotish Chart</h2>
+    <pre id="chart-summary-text"></pre>
+  </section>
+
+  <!-- Chat -->
+  <section id="chat-section">
+    <div class="chat-header">
+      <h2>Ask Drishti</h2>
+      <span id="active-model-badge">via Claude</span>
+    </div>
+    <div class="suggestion-chips">
+      <button class="chip" onclick="askSuggestion(this)">What does my lagna reveal?</button>
+      <button class="chip" onclick="askSuggestion(this)">Tell me about my current dasha</button>
+      <button class="chip" onclick="askSuggestion(this)">What are my strongest yogas?</button>
+      <button class="chip" onclick="askSuggestion(this)">Career and life purpose</button>
+      <button class="chip" onclick="askSuggestion(this)">Relationships and love</button>
+    </div>
+    <div id="messages"></div>
+    <div id="chat-input-row">
+      <textarea id="chat-input" rows="2" placeholder="Ask anything about your chart…"></textarea>
+      <button id="send-btn" onclick="sendMessage()">&#9658;</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const MODEL_NAMES = {
+    claude:  "via Claude",
+    groq:    "via Groq (Llama 3)",
+    gemini:  "via Gemini",
+    ollama:  "via Ollama (local)",
+  };
+
+  const KEY_STORAGE = {
+    claude: "drishti_key_claude",
+    groq:   "drishti_key_groq",
+    gemini: "drishti_key_gemini",
+  };
+
+  let selectedModel = "claude";
+
+  // ── Settings panel ──────────────────────────────
+  function openSettings() {
+    // Populate inputs with saved keys (masked — just show placeholder if set)
+    for (const [provider, storageKey] of Object.entries(KEY_STORAGE)) {
+      const saved = localStorage.getItem(storageKey) || "";
+      document.getElementById(`key-${provider}`).value = saved;
+    }
+    document.getElementById("keys-saved-msg").style.display = "none";
+    document.getElementById("settings-overlay").classList.add("open");
+  }
+
+  function closeSettings() {
+    document.getElementById("settings-overlay").classList.remove("open");
+    refreshCardStates();
+  }
+
+  function saveKeys() {
+    for (const [provider, storageKey] of Object.entries(KEY_STORAGE)) {
+      const val = document.getElementById(`key-${provider}`).value.trim();
+      if (val) localStorage.setItem(storageKey, val);
+      else localStorage.removeItem(storageKey);
+    }
+    const msg = document.getElementById("keys-saved-msg");
+    msg.style.display = "block";
+    setTimeout(() => closeSettings(), 900);
+  }
+
+  function getKey(provider) {
+    const storageKey = KEY_STORAGE[provider];
+    return storageKey ? (localStorage.getItem(storageKey) || "") : "";
+  }
+
+  // Close overlay when clicking outside the panel
+  document.getElementById("settings-overlay").addEventListener("click", e => {
+    if (e.target === document.getElementById("settings-overlay")) closeSettings();
+  });
+
+  // ── Model cards ──────────────────────────────────
+  function refreshCardStates() {
+    for (const provider of ["claude", "groq", "gemini", "ollama"]) {
+      const card = document.getElementById(`card-${provider}`);
+      const badge = document.getElementById(`badge-${provider}`);
+      const hasKey = provider === "ollama" || !!getKey(provider);
+
+      card.classList.toggle("unavailable", !hasKey);
+      if (badge) {
+        if (!hasKey) {
+          badge.textContent = "No key set";
+          badge.className = "model-card-badge badge-no-key";
+        } else {
+          // Restore original badge
+          const origText  = { groq: "Free tier", gemini: "Free tier" };
+          const origClass = { groq: "badge-free", gemini: "badge-free" };
+          if (origText[provider]) {
+            badge.textContent = origText[provider];
+            badge.className = `model-card-badge ${origClass[provider]}`;
+          }
+        }
+      }
+    }
+
+    // If selected model lost its key, fall back to first available
+    const selCard = document.getElementById(`card-${selectedModel}`);
+    if (selCard.classList.contains("unavailable")) {
+      const fallback = ["ollama", "groq", "gemini", "claude"].find(
+        p => !document.getElementById(`card-${p}`).classList.contains("unavailable")
+      );
+      if (fallback) selectModel(fallback);
+    }
+  }
+
+  function selectModel(provider) {
+    const card = document.getElementById(`card-${provider}`);
+    if (card.classList.contains("unavailable")) return;
+    document.querySelectorAll(".model-card").forEach(c => c.classList.remove("selected"));
+    card.classList.add("selected");
+    selectedModel = provider;
+    document.getElementById("active-model-badge").textContent = MODEL_NAMES[provider];
+  }
+
+  document.getElementById("chat-input").addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  async function calculateChart() {
+    const date = document.getElementById("birth-date").value;
+    const time = document.getElementById("birth-time").value;
+    const city = document.getElementById("birth-city").value.trim();
+    const errEl = document.getElementById("form-error");
+    const btn = document.getElementById("calculate-btn");
+
+    errEl.textContent = "";
+    if (!date || !time || !city) {
+      errEl.textContent = "Please fill in all three fields.";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Calculating…";
+
+    try {
+      const res = await fetch("/calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, time, city }),
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        errEl.textContent = data.error;
+        return;
+      }
+
+      document.getElementById("chart-summary-text").textContent = data.summary;
+      document.getElementById("chart-section").style.display = "block";
+      document.getElementById("chat-section").style.display = "flex";
+      btn.textContent = "Recalculate";
+
+      appendMessage("assistant", "Namaste! I have cast your Jyotish chart. I can see your lagna, planetary placements, nakshatras, and current dasha period. What would you like to explore?");
+
+    } catch (e) {
+      errEl.textContent = "Something went wrong. Please try again.";
+    } finally {
+      btn.disabled = false;
+      if (btn.textContent === "Calculating…") btn.textContent = "Calculate My Chart";
+    }
+  }
+
+  function askSuggestion(chip) {
+    document.getElementById("chat-input").value = chip.textContent;
+    sendMessage();
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById("chat-input");
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    input.value = "";
+    appendMessage("user", msg);
+
+    const sendBtn = document.getElementById("send-btn");
+    sendBtn.disabled = true;
+    const typingEl = appendTyping();
+
+    try {
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg, provider: selectedModel, api_key: getKey(selectedModel) }),
+      });
+      const data = await res.json();
+      typingEl.remove();
+
+      if (data.error) {
+        appendMessage("assistant", "Sorry, something went wrong: " + data.error);
+      } else {
+        appendMessage("assistant", data.reply);
+      }
+    } catch (e) {
+      typingEl.remove();
+      appendMessage("assistant", "Connection error. Please try again.");
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  function appendMessage(role, text) {
+    const container = document.getElementById("messages");
+    const div = document.createElement("div");
+    div.className = `msg ${role}`;
+
+    const label = document.createElement("div");
+    label.className = "msg-label";
+    label.textContent = role === "user" ? "You" : "Drishti";
+
+    const bubble = document.createElement("div");
+    bubble.className = "msg-bubble";
+    bubble.innerHTML = text.split(/\n\n+/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+
+    div.appendChild(label);
+    div.appendChild(bubble);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+  }
+
+  function appendTyping() {
+    const container = document.getElementById("messages");
+    const div = document.createElement("div");
+    div.className = "msg assistant";
+
+    const label = document.createElement("div");
+    label.className = "msg-label";
+    label.textContent = "Drishti";
+
+    const indicator = document.createElement("div");
+    indicator.className = "typing-indicator";
+    indicator.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+    div.appendChild(label);
+    div.appendChild(indicator);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+  }
+
+  refreshCardStates();
+</script>
+
+</body>
+</html>

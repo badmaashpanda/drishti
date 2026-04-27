@@ -1,0 +1,8 @@
+flask
+anthropic
+openai
+google-generativeai
+pyswisseph
+geopy
+timezonefinder
+pytz
